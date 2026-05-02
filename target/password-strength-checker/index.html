@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Password Strength Checker</title>
+    <style>
+        :root {
+            --bg: #f5efe4;
+            --card: #fffdf8;
+            --ink: #1f2933;
+            --muted: #51606b;
+            --accent: #0f766e;
+            --accent-dark: #134e4a;
+            --border: #d8c8a8;
+            --panel: #f7faf9;
+            --shadow: 0 18px 45px rgba(31, 41, 51, 0.12);
+            --weak: #dc2626;
+            --medium: #ea580c;
+            --strong: #15803d;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            display: grid;
+            place-items: center;
+            padding: 24px;
+            font-family: "Trebuchet MS", "Gill Sans", sans-serif;
+            color: var(--ink);
+            background:
+                radial-gradient(circle at top left, rgba(15, 118, 110, 0.18), transparent 28%),
+                radial-gradient(circle at bottom right, rgba(245, 158, 11, 0.2), transparent 32%),
+                linear-gradient(135deg, #f7f1e3, #eef6f5);
+        }
+
+        .card {
+            width: min(100%, 520px);
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 22px;
+            box-shadow: var(--shadow);
+            padding: 32px 28px;
+        }
+
+        h1 {
+            margin: 0 0 12px;
+            font-size: clamp(2rem, 5vw, 2.6rem);
+            line-height: 1.05;
+            color: var(--accent-dark);
+        }
+
+        p {
+            margin: 0 0 20px;
+            font-size: 1rem;
+            line-height: 1.6;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .input-shell {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .input-shell input {
+            flex: 1;
+            min-width: 0;
+        }
+
+        input[type="password"],
+        input[type="text"] {
+            width: 100%;
+            padding: 14px 16px;
+            border: 1px solid #b9c8c6;
+            border-radius: 12px;
+            font-size: 1rem;
+            outline: none;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        input[type="password"]:focus,
+        input[type="text"]:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 4px rgba(15, 118, 110, 0.14);
+        }
+
+        .toggle-password {
+            min-width: 84px;
+            padding: 13px 14px;
+            border: 1px solid #a7b7b4;
+            border-radius: 12px;
+            background: #ffffff;
+            color: var(--accent-dark);
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .toggle-password:hover {
+            background: #f0f7f6;
+        }
+
+        .primary-button {
+            width: 100%;
+            margin-top: 18px;
+            padding: 14px 16px;
+            border: none;
+            border-radius: 999px;
+            background: linear-gradient(135deg, var(--accent), #115e59);
+            color: #ffffff;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .primary-button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 12px 24px rgba(15, 118, 110, 0.25);
+        }
+
+        .preview-panel,
+        .tips-panel {
+            margin-top: 22px;
+            padding: 18px;
+            border-radius: 18px;
+            border: 1px solid #d8e3df;
+            background: var(--panel);
+        }
+
+        .preview-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .preview-header h2,
+        .tips-panel h2 {
+            margin: 0;
+            font-size: 1.1rem;
+            color: var(--accent-dark);
+        }
+
+        .strength-text {
+            margin: 0;
+            font-weight: 700;
+        }
+
+        .strength-text.weak {
+            color: var(--weak);
+        }
+
+        .strength-text.medium {
+            color: var(--medium);
+        }
+
+        .strength-text.strong {
+            color: var(--strong);
+        }
+
+        .meter {
+            width: 100%;
+            height: 12px;
+            margin-bottom: 14px;
+            overflow: hidden;
+            border-radius: 999px;
+            background: #dbe5e3;
+        }
+
+        .meter-bar {
+            width: 0;
+            height: 100%;
+            border-radius: inherit;
+            background: var(--weak);
+            transition: width 0.25s ease, background-color 0.25s ease;
+        }
+
+        .status-grid {
+            display: grid;
+            gap: 10px;
+            grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+            padding: 0;
+            margin: 0;
+            list-style: none;
+        }
+
+        .status-item {
+            padding: 12px 14px;
+            border-radius: 14px;
+            border: 1px solid #d9e2df;
+            background: #ffffff;
+        }
+
+        .status-item .title {
+            display: block;
+            margin-bottom: 4px;
+            font-weight: 700;
+        }
+
+        .status-item .state {
+            font-size: 0.95rem;
+            color: var(--muted);
+        }
+
+        .status-item.ok {
+            border-color: rgba(21, 128, 61, 0.3);
+            background: rgba(21, 128, 61, 0.08);
+        }
+
+        .status-item.ok .state {
+            color: var(--strong);
+            font-weight: 700;
+        }
+
+        .status-item.bad {
+            border-color: rgba(220, 38, 38, 0.18);
+            background: rgba(255, 255, 255, 0.92);
+        }
+
+        .tips-panel ul {
+            margin: 12px 0 0;
+            padding-left: 20px;
+            line-height: 1.7;
+        }
+
+        .small-note {
+            margin-top: 12px;
+            color: var(--muted);
+            font-size: 0.95rem;
+        }
+
+        @media (max-width: 540px) {
+            .card {
+                padding: 26px 20px;
+            }
+
+            .input-shell {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .toggle-password {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+<main class="card">
+    <h1>Password Strength Checker</h1>
+    <p>Enter a password to test it against four common security rules. You can also preview the strength live before submitting.</p>
+
+    <form action="password-checker" method="post">
+        <label for="password">Password</label>
+        <div class="input-shell">
+            <input
+                type="password"
+                id="password"
+                name="password"
+                placeholder="Enter your password"
+                autocomplete="new-password"
+                required
+            >
+            <button type="button" class="toggle-password" id="togglePassword" aria-pressed="false">
+                Show
+            </button>
+        </div>
+        <div class="small-note">Tip: Use the Show button only when you are comfortable revealing the password on screen.</div>
+        <button type="submit" class="primary-button">Check Strength</button>
+    </form>
+
+    <section class="preview-panel" aria-labelledby="live-preview-heading">
+        <div class="preview-header">
+            <h2 id="live-preview-heading">Live Preview</h2>
+            <p class="strength-text weak" id="strengthText" aria-live="polite">Strength: Weak</p>
+        </div>
+        <div class="meter" aria-hidden="true">
+            <div class="meter-bar" id="meterBar"></div>
+        </div>
+        <ul class="status-grid">
+            <li class="status-item bad" id="lengthRule">
+                <span class="title">Length</span>
+                <span class="state">Needs at least 8 characters</span>
+            </li>
+            <li class="status-item bad" id="uppercaseRule">
+                <span class="title">Uppercase Letter</span>
+                <span class="state">Add at least one uppercase letter</span>
+            </li>
+            <li class="status-item bad" id="digitRule">
+                <span class="title">Digit</span>
+                <span class="state">Add at least one number</span>
+            </li>
+            <li class="status-item bad" id="specialRule">
+                <span class="title">Special Character</span>
+                <span class="state">Add at least one special character</span>
+            </li>
+        </ul>
+    </section>
+
+    <section class="tips-panel">
+        <h2>Good Password Tips</h2>
+        <ul>
+            <li>Use a phrase you can remember, then mix in numbers and symbols.</li>
+            <li>Avoid personal names, birthdays, or simple patterns like 12345.</li>
+            <li>Do not reuse the same password across multiple accounts.</li>
+        </ul>
+    </section>
+</main>
+
+<script>
+    const passwordInput = document.getElementById("password");
+    const togglePasswordButton = document.getElementById("togglePassword");
+    const strengthText = document.getElementById("strengthText");
+    const meterBar = document.getElementById("meterBar");
+
+    const ruleElements = {
+        length: document.getElementById("lengthRule"),
+        uppercase: document.getElementById("uppercaseRule"),
+        digit: document.getElementById("digitRule"),
+        special: document.getElementById("specialRule")
+    };
+
+    function getRuleResults(password) {
+        return {
+            length: password.length >= 8,
+            uppercase: /[A-Z]/.test(password),
+            digit: /\d/.test(password),
+            special: /[^a-zA-Z0-9]/.test(password)
+        };
+    }
+
+    function getStrength(passedRules) {
+        if (passedRules === 4) {
+            return { label: "Strong", cssClass: "strong", color: "var(--strong)" };
+        }
+        if (passedRules === 3) {
+            return { label: "Medium", cssClass: "medium", color: "var(--medium)" };
+        }
+        return { label: "Weak", cssClass: "weak", color: "var(--weak)" };
+    }
+
+    function updateRuleCard(element, passed, successMessage, pendingMessage) {
+        element.classList.toggle("ok", passed);
+        element.classList.toggle("bad", !passed);
+        element.querySelector(".state").textContent = passed ? successMessage : pendingMessage;
+    }
+
+    function updatePreview() {
+        const password = passwordInput.value;
+        const results = getRuleResults(password);
+        const passedRules = Object.values(results).filter(Boolean).length;
+        const strength = getStrength(passedRules);
+
+        strengthText.textContent = "Strength: " + strength.label;
+        strengthText.className = "strength-text " + strength.cssClass;
+        meterBar.style.width = String(passedRules * 25) + "%";
+        meterBar.style.backgroundColor = strength.color;
+
+        updateRuleCard(ruleElements.length, results.length, "Pass", "Needs at least 8 characters");
+        updateRuleCard(ruleElements.uppercase, results.uppercase, "Pass", "Add at least one uppercase letter");
+        updateRuleCard(ruleElements.digit, results.digit, "Pass", "Add at least one number");
+        updateRuleCard(ruleElements.special, results.special, "Pass", "Add at least one special character");
+    }
+
+    togglePasswordButton.addEventListener("click", function () {
+        const showingPassword = passwordInput.type === "text";
+        passwordInput.type = showingPassword ? "password" : "text";
+        togglePasswordButton.textContent = showingPassword ? "Show" : "Hide";
+        togglePasswordButton.setAttribute("aria-pressed", String(!showingPassword));
+        passwordInput.focus();
+    });
+
+    passwordInput.addEventListener("input", updatePreview);
+    updatePreview();
+</script>
+</body>
+</html>
