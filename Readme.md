@@ -1,4 +1,4 @@
-**Project Heading:** Password Strength Checker
+**Project Title:** Password Strength Checker
 
 **Unique Feature:**
 A standout feature of this project is its **real-time validation with dual-level checking (client + server)**. It not only gives instant feedback as users type (live preview), but also performs a final authoritative check on the server side, ensuring higher security, accuracy, and protection against manipulation or bypassing of validation rules.
